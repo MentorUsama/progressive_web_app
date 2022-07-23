@@ -1,4 +1,4 @@
-var CACHE_STATIC_NAME = "static-v10"
+var CACHE_STATIC_NAME = "static-v11"
 var CACHE_DYNAMIC_NAME = "dynamic-v2"
 
 self.addEventListener("install", (event) => {
@@ -8,6 +8,7 @@ self.addEventListener("install", (event) => {
       console.log("[service worker] pre caching");
       cache.addAll([
         "/",
+        "./offline.html",
         "./index.html",
         "./src/js/app.js",
         "./src/js/feed.js",
@@ -47,15 +48,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) return response;
+      if (response) return response; // If found in cache
       else
         return fetch(event.request).then((res) => {
           return caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
             cache.put(event.request.url, res.clone());
             return res;
           });
-        }).catch(error=>{
-
+        }).catch(error=>{ // if neither found in cache and neither did fetch request success
+          return caches.open(CACHE_STATIC_NAME).then((cache)=>{
+            return cache.match("/offline.html")
+          })
         });
     })
   ); // Overwrite data that is get back
