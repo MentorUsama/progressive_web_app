@@ -1,33 +1,34 @@
-var CACHE_STATIC_NAME = "static-v14"
-var CACHE_DYNAMIC_NAME = "dynamic-v4"
+var CACHE_STATIC_NAME = "static-v30"
+var CACHE_DYNAMIC_NAME = "dynamic-v30"
+const STATIC_FILES_ARRAY=[
+  "/",
+  "./offline.html",
+  "./index.html",
+  "./src/js/app.js",
+  "./src/js/feed.js",
+  "./src/js/promise.js",
+  "./src/js/fetch.js",
+  "./src/js/material.min.js",
+  "./src/css/app.css",
+  "./src/css/feed.css",
+  "./src/images/main-image.jpg",
+  "https://fonts.googleapis.com/css?family=Roboto:400,700",
+  "https://fonts.googleapis.com/icon?family=Material+Icons",
+  "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
+]
 
 self.addEventListener("install", (event) => {
   console.log("[Service worker] Installing service worker ...", event);
-  event.waitUntill(
+  event.waitUntil(
     caches.open(CACHE_STATIC_NAME).then((cache) => {
       console.log("[service worker] pre caching");
-      cache.addAll([
-        "/",
-        "./offline.html",
-        "./index.html",
-        "./src/js/app.js",
-        "./src/js/feed.js",
-        "./src/js/promise.js",
-        "./src/js/fetch.js",
-        "./src/js/material.min.js",
-        "./src/css/app.css",
-        "./src/css/feed.css",
-        "./src/images/main-image.jpg",
-        "https://fonts.googleapis.com/css?family=Roboto:400,700",
-        "https://fonts.googleapis.com/icon?family=Material+Icons",
-        "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css",
-      ]);
+      cache.addAll(STATIC_FILES_ARRAY);
     })
   );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntill(
+  event.waitUntil(
     caches.keys()
       .then((keyList)=>{
         return Promise.all(
@@ -35,6 +36,7 @@ self.addEventListener("activate", (event) => {
             if(key!=CACHE_STATIC_NAME && key!=CACHE_DYNAMIC_NAME)
             {
               console.log('[service worker] removing cache',key)
+              console.log("deleting")
               return caches.delete(key)
             }
           })
@@ -44,12 +46,21 @@ self.addEventListener("activate", (event) => {
   return self.clients.claim();
 });
 
+function isInArray(string,array){
+  for(var i=0;i<array.length;i++)
+  {
+    if(array[i]==string)
+      return true
+  }
+  return false
+}
 // ============== Cache then network ==============
 // Trigger when something is fetched or we manually send fetched event
 self.addEventListener("fetch", (event) => {
   const url="https://httpbin.org/get"
-  if(event.request.url.indexOf(url)>-1)
+  if(event.request.url.indexOf(url)>-1) // This is for the case where you are providing old data and now fetching new one
   {
+    console.log("First if")
     event.respondWith(
       caches.open(CACHE_DYNAMIC_NAME).then((cache)=>{
         return fetch(event.request).then((res) => {
@@ -59,18 +70,23 @@ self.addEventListener("fetch", (event) => {
       })
     );
   }
-  else
+  else if (isInArray(STATIC_FILES_ARRAY,event.request)) {
+    event.respondWith(
+      caches.match(event.request)
+    );
+  }
+  else // Otherwise you will get data from cache if found then good if not found then send request
   {
     event.respondWith(
       caches.match(event.request).then((response) => {
         if (response) return response; // If found in cache
-        else
+        else // if not found in cache return server request and also add in cache
           return fetch(event.request).then((res) => {
             return caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
               cache.put(event.request.url, res.clone());
               return res;
             });
-          }).catch(error=>{ // if neither found in cache and neither did fetch request success
+          }).catch(error=>{ // If nothing found and the request contain html file then offline file is send
             return caches.open(CACHE_STATIC_NAME).then((cache)=>{
               if(event.request.url.indexOf('/help')>-1)
                 return cache.match("/offline.html")
