@@ -1,5 +1,5 @@
-var CACHE_STATIC_NAME = "static-v11"
-var CACHE_DYNAMIC_NAME = "dynamic-v2"
+var CACHE_STATIC_NAME = "static-v14"
+var CACHE_DYNAMIC_NAME = "dynamic-v4"
 
 self.addEventListener("install", (event) => {
   console.log("[Service worker] Installing service worker ...", event);
@@ -44,7 +44,45 @@ self.addEventListener("activate", (event) => {
   return self.clients.claim();
 });
 
-// Caching with network fallback and dynamic caching
+// ============== Cache then network ==============
+// Trigger when something is fetched or we manually send fetched event
+self.addEventListener("fetch", (event) => {
+  const url="https://httpbin.org/get"
+  if(event.request.url.indexOf(url)>-1)
+  {
+    event.respondWith(
+      caches.open(CACHE_DYNAMIC_NAME).then((cache)=>{
+        return fetch(event.request).then((res) => {
+          cache.put(event.request,res.clone())
+          return res
+        })
+      })
+    );
+  }
+  else
+  {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        if (response) return response; // If found in cache
+        else
+          return fetch(event.request).then((res) => {
+            return caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
+              cache.put(event.request.url, res.clone());
+              return res;
+            });
+          }).catch(error=>{ // if neither found in cache and neither did fetch request success
+            return caches.open(CACHE_STATIC_NAME).then((cache)=>{
+              if(event.request.url.indexOf('/help')>-1)
+                return cache.match("/offline.html")
+            })
+          });
+      })
+    )
+  }
+});
+
+
+// ============== Caching with network fallback and dynamic caching ==============
 // Trigger when something is fetched or we manually send fetched event
 // self.addEventListener("fetch", (event) => {
 //   event.respondWith(
@@ -65,31 +103,34 @@ self.addEventListener("activate", (event) => {
 //   ); // Overwrite data that is get back
 // });
 
-// Network with caching fallback with dynamic caching
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    fetch(event.request)
-      .then(function(res) {
-        return caches.open(CACHE_DYNAMIC_NAME)
-                .then(function(cache) {
-                  cache.put(event.request.url, res.clone());
-                  return res;
-                })
-      })
-      .catch(function(err) {
-        return caches.match(event.request);
-      })
-  );
-});
 
-// Cache-only
+// ============== Network with caching fallback with dynamic caching ==============
+// self.addEventListener('fetch', function(event) {
+//   event.respondWith(
+//     fetch(event.request)
+//       .then(function(res) {
+//         return caches.open(CACHE_DYNAMIC_NAME)
+//                 .then(function(cache) {
+//                   cache.put(event.request.url, res.clone());
+//                   return res;
+//                 })
+//       })
+//       .catch(function(err) {
+//         return caches.match(event.request);
+//       })
+//   );
+// });
+
+
+// ============== Cache-only ==============
 // self.addEventListener('fetch', function (event) {
 //   event.respondWith(
 //     caches.match(event.request)
 //   );
 // });
 
-// Network-only
+
+// ============== Network-only ==============
 // self.addEventListener('fetch', function (event) {
 //   event.respondWith(
 //     fetch(event.request)

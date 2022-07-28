@@ -41,6 +41,11 @@ function onSaveButtonClicked(event){
       cache.add("../images/sf-boat.jpg")
     })
 }
+function clearCards() {
+  while(sharedMomentsArea.hasChildNodes()) {
+    sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
+  }
+}
 function createCard() {
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
@@ -68,10 +73,36 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-fetch('https://httpbin.org/get')
+
+// =========== Sending request to get card ===========
+const url='https://httpbin.org/get'
+var networkDataReceived=false
+fetch(url)
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
+    networkDataReceived=true
+    console.log("From web data")
+    clearCards()
     createCard();
   });
+
+if('caches' in window)
+{
+  caches.match(url)
+    .then(response=>{
+      if(response) return response.json()
+    })
+    .then((data)=>{
+      console.log("From cache")
+      if(!networkDataReceived)
+      {
+        clearCards()
+        createCard(data)
+      }
+    })
+    .catch(error=>{
+
+    })
+}
