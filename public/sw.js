@@ -1,5 +1,5 @@
-var CACHE_STATIC_NAME = "static-v30"
-var CACHE_DYNAMIC_NAME = "dynamic-v30"
+var CACHE_STATIC_NAME = "static-v39"
+var CACHE_DYNAMIC_NAME = "dynamic-v39"
 const STATIC_FILES_ARRAY=[
   "/",
   "./offline.html",
