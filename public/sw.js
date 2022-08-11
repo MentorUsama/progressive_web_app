@@ -88,7 +88,7 @@ self.addEventListener("fetch", (event) => {
             });
           }).catch(error=>{ // If nothing found and the request contain html file then offline file is send
             return caches.open(CACHE_STATIC_NAME).then((cache)=>{
-              if(event.request.url.indexOf('/help')>-1)
+              if(event.request.headers.get('accept').includes('text/html'))
                 return cache.match("/offline.html")
             })
           });
