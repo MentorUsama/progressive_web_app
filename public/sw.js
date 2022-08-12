@@ -67,7 +67,7 @@ function isInArray(string,array){
 // ============== Cache then network ==============
 // Trigger when something is fetched or we manually send fetched event
 self.addEventListener("fetch", (event) => {
-  const url="https://httpbin.org/get"
+  const url='https://practise-c4216-default-rtdb.firebaseio.com/posts.json'
   if(event.request.url.indexOf(url)>-1) // This is for the case where you are providing old data and now fetching new one
   {
     console.log("First if")

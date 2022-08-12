@@ -55,36 +55,47 @@ function clearCards() {
     sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
   }
 }
-function createCard() {
+function clearCards() {
+  while(sharedMomentsArea.hasChildNodes()) {
+    sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
+  }
+}
+
+function createCard(data) {
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url("/src/images/sf-boat.jpg")';
+  cardTitle.style.backgroundImage = 'url(' + data.image + ')';
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
-  cardTitleTextElement.className = 'mdl-card__title-text';
   cardTitleTextElement.style.color = 'white';
-  cardTitleTextElement.textContent = 'San Francisco Trip';
+  cardTitleTextElement.className = 'mdl-card__title-text';
+  cardTitleTextElement.textContent = data.title;
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
-  cardSupportingText.textContent = 'In San Francisco';
+  cardSupportingText.textContent = data.location;
   cardSupportingText.style.textAlign = 'center';
-  // const cardSaveButton=document.createElement('button')
-  // cardSaveButton.textContent="Save"
-  // cardSaveButton.addEventListener("click",onSaveButtonClicked)
-  // cardSupportingText.appendChild(cardSaveButton)
+  // var cardSaveButton = document.createElement('button');
+  // cardSaveButton.textContent = 'Save';
+  // cardSaveButton.addEventListener('click', onSaveButtonClicked);
+  // cardSupportingText.appendChild(cardSaveButton);
   cardWrapper.appendChild(cardSupportingText);
   componentHandler.upgradeElement(cardWrapper);
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-
+function updateUI(data) {
+  clearCards();
+  for (var i = 0; i < data.length; i++) {
+    createCard(data[i]);
+  }
+}
 // =========== Sending request to get card ===========
-const url='https://httpbin.org/get'
+const url='https://practise-c4216-default-rtdb.firebaseio.com/posts.json'
 var networkDataReceived=false
 fetch(url)
   .then(function(res) {
@@ -94,7 +105,12 @@ fetch(url)
     networkDataReceived=true
     console.log("From web data")
     clearCards()
-    createCard();
+    var dataArray=[]
+    for(var key in data)
+    {
+      dataArray.push(data[key])
+    }
+    updateUI(dataArray);
   });
 
 if('caches' in window)
@@ -108,7 +124,12 @@ if('caches' in window)
       if(!networkDataReceived)
       {
         clearCards()
-        createCard(data)
+        var dataArray=[]
+        for(var key in data)
+        {
+          dataArray.push(data[key])
+        }
+        updateUI(dataArray);
       }
     })
     .catch(error=>{
