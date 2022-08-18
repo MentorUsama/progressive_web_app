@@ -1,11 +1,14 @@
-var CACHE_STATIC_NAME = "static-v39"
-var CACHE_DYNAMIC_NAME = "dynamic-v39"
+importScripts("./src/js/idb.js")
+importScripts("./src/js/utility.js")
+var CACHE_STATIC_NAME = "static-v43"
+var CACHE_DYNAMIC_NAME = "dynamic-v43"
 const STATIC_FILES_ARRAY=[
   "/",
   "./offline.html",
   "./index.html",
   "./src/js/app.js",
   "./src/js/feed.js",
+  "./src/js/idb.js",
   "./src/js/promise.js",
   "./src/js/fetch.js",
   "./src/js/material.min.js",
@@ -16,7 +19,6 @@ const STATIC_FILES_ARRAY=[
   "https://fonts.googleapis.com/icon?family=Material+Icons",
   "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
 ]
-
 // function trimCache(cacheName,maxItems){
 //   caches.open(cacheName)
 //     .then(function(cache){
@@ -71,15 +73,16 @@ self.addEventListener("fetch", (event) => {
   if(event.request.url.indexOf(url)>-1) // This is for the case where you are providing old data and now fetching new one
   {
     console.log("First if")
-    event.respondWith(
-      caches.open(CACHE_DYNAMIC_NAME).then((cache)=>{
-        return fetch(event.request).then((res) => {
-          // trimCache(CACHE_DYNAMIC_NAME,3)
-          cache.put(event.request,res.clone())
-          return res
-        })
-      })
-    );
+    event.respondWith(fetch(event.request).then((res) => {
+        var clonedRes=res.clone()
+        clonedRes.json()
+          .then(function(data) {
+            for (var key in data) {
+              writeDate('posts',data[key])
+            }
+          });
+        return res
+    }));
   }
   else if (isInArray(STATIC_FILES_ARRAY,event.request)) {
     event.respondWith(
