@@ -111,6 +111,8 @@ fetch(url)
       dataArray.push(data[key])
     }
     updateUI(dataArray);
+  }).catch(e=>{
+    console.log(e)
   });
 
 if('indexedDB' in window)

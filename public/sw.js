@@ -1,8 +1,8 @@
-importScripts("./src/js/idb.js")
-importScripts("./src/js/utility.js")
-var CACHE_STATIC_NAME = "static-v43"
-var CACHE_DYNAMIC_NAME = "dynamic-v43"
-const STATIC_FILES_ARRAY=[
+importScripts("./src/js/idb.js");
+importScripts("./src/js/utility.js");
+var CACHE_STATIC_NAME = "static-v47";
+var CACHE_DYNAMIC_NAME = "dynamic-v47";
+const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
   "./index.html",
@@ -17,8 +17,8 @@ const STATIC_FILES_ARRAY=[
   "./src/images/main-image.jpg",
   "https://fonts.googleapis.com/css?family=Roboto:400,700",
   "https://fonts.googleapis.com/icon?family=Material+Icons",
-  "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"
-]
+  "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css",
+];
 // function trimCache(cacheName,maxItems){
 //   caches.open(cacheName)
 //     .then(function(cache){
@@ -41,77 +41,77 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys()
-      .then((keyList)=>{
-        return Promise.all(
-          keyList.map((key)=>{
-            if(key!=CACHE_STATIC_NAME && key!=CACHE_DYNAMIC_NAME)
-            {
-              console.log('[service worker] removing cache',key)
-              console.log("deleting")
-              return caches.delete(key)
-            }
-          })
-        )
-      })
-  )
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key != CACHE_STATIC_NAME && key != CACHE_DYNAMIC_NAME) {
+            console.log("[service worker] removing cache", key);
+            console.log("deleting");
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
   return self.clients.claim();
 });
 
-function isInArray(string,array){
-  for(var i=0;i<array.length;i++)
-  {
-    if(array[i]==string)
-      return true
+function isInArray(string, array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] == string) return true;
   }
-  return false
+  return false;
 }
 // ============== Cache then network ==============
 // Trigger when something is fetched or we manually send fetched event
 self.addEventListener("fetch", (event) => {
-  const url='https://practise-c4216-default-rtdb.firebaseio.com/posts.json'
-  if(event.request.url.indexOf(url)>-1) // This is for the case where you are providing old data and now fetching new one
-  {
-    console.log("First if")
-    event.respondWith(fetch(event.request).then((res) => {
-        var clonedRes=res.clone()
-        clonedRes.json()
-          .then(function(data) {
+  const url = "https://practise-c4216-default-rtdb.firebaseio.com/posts.json";
+  if (event.request.url.indexOf(url) > -1) {
+    // This is for the case where you are providing old data and now fetching new one
+    console.log("First if");
+    event.respondWith(
+      fetch(event.request).then((res) => {
+        var clonedRes = res.clone();
+        clearAllData("posts")
+          .then(function () {
+            return clonedRes.json();
+          })
+          .then(function (data) {
             for (var key in data) {
-              writeDate('posts',data[key])
+              writeDate("posts", data[key]);
             }
           });
-        return res
-    }));
-  }
-  else if (isInArray(STATIC_FILES_ARRAY,event.request)) {
-    event.respondWith(
-      caches.match(event.request)
+        return res;
+      })
     );
-  }
-  else // Otherwise you will get data from cache if found then good if not found then send request
-  {
+  } else if (isInArray(STATIC_FILES_ARRAY, event.request)) {
+    event.respondWith(caches.match(event.request));
+  } // Otherwise you will get data from cache if found then good if not found then send request
+  else {
     event.respondWith(
       caches.match(event.request).then((response) => {
         if (response) return response; // If found in cache
-        else // if not found in cache return server request and also add in cache
-          return fetch(event.request).then((res) => {
-            return caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
-              // trimCache(CACHE_DYNAMIC_NAME,3)
-              cache.put(event.request.url, res.clone());
-              return res;
-            });
-          }).catch(error=>{ // If nothing found and the request contain html file then offline file is send
-            return caches.open(CACHE_STATIC_NAME).then((cache)=>{
-              if(event.request.headers.get('accept').includes('text/html'))
-                return cache.match("/offline.html")
+        // if not found in cache return server request and also add in cache
+        else
+          return fetch(event.request)
+            .then((res) => {
+              return caches.open(CACHE_DYNAMIC_NAME).then((cache) => {
+                // trimCache(CACHE_DYNAMIC_NAME,3)
+                cache.put(event.request.url, res.clone());
+                return res;
+              });
             })
-          });
+            .catch((error) => {
+              // If nothing found and the request contain html file then offline file is send
+              return caches.open(CACHE_STATIC_NAME).then((cache) => {
+                if (event.request.headers.get("accept").includes("text/html"))
+                  return cache.match("/offline.html");
+              });
+            });
       })
-    )
+    );
   }
 });
-
 
 // ============== Caching with network fallback and dynamic caching ==============
 // Trigger when something is fetched or we manually send fetched event
@@ -134,7 +134,6 @@ self.addEventListener("fetch", (event) => {
 //   ); // Overwrite data that is get back
 // });
 
-
 // ============== Network with caching fallback with dynamic caching ==============
 // self.addEventListener('fetch', function(event) {
 //   event.respondWith(
@@ -152,14 +151,12 @@ self.addEventListener("fetch", (event) => {
 //   );
 // });
 
-
 // ============== Cache-only ==============
 // self.addEventListener('fetch', function (event) {
 //   event.respondWith(
 //     caches.match(event.request)
 //   );
 // });
-
 
 // ============== Network-only ==============
 // self.addEventListener('fetch', function (event) {
