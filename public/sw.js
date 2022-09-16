@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v52";
-var CACHE_DYNAMIC_NAME = "dynamic-v52";
+var CACHE_STATIC_NAME = "static-v60";
+var CACHE_DYNAMIC_NAME = "dynamic-v60";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -173,9 +173,9 @@ self.addEventListener("sync", function (event) {
     // Syncing new post
     event.waitUntil(
       readAllData("sync-posts").then(function (data) {
-        for (var dt of data) { 
+        for (var dt of data) {
           fetch(
-            "https://practise-c4216-default-rtdb.firebaseio.com/posts.json",
+            "http://localhost:8080/post",
             {
               method: "POST",
               headers: {
@@ -190,14 +190,19 @@ self.addEventListener("sync", function (event) {
                   "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
               }),
             }
-          ).then(function (res) {
-            console.log(res)
-            if(res.ok){
-              deleteItemFromData("sync-posts",dt.id)
-            }
-          }).catch(function(err){
-            console.log("Failed To Delete Data")
-          });
+          )
+            .then(function (res) {
+              console.log(res);
+              if (res.ok) {
+                res.json().then(function (resData) {
+                  console.log(resData)
+                  deleteItemFromData("sync-posts", resData.id);
+                });
+              }
+            })
+            .catch(function (err) {
+              console.log("Failed To Delete Data");
+            });
         }
       })
     );

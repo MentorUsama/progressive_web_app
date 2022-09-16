@@ -147,7 +147,7 @@ if ("indexedDB" in window) {
   });
 }
 function sendData(){
-  fetch('https://practise-c4216-default-rtdb.firebaseio.com/posts.json',{
+  fetch('http://localhost:8080/post',{
     method:"POST",
     headers:{
       'Content-Type':'application/json',
