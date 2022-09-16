@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v51";
-var CACHE_DYNAMIC_NAME = "dynamic-v51";
+var CACHE_STATIC_NAME = "static-v52";
+var CACHE_DYNAMIC_NAME = "dynamic-v52";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -191,6 +191,7 @@ self.addEventListener("sync", function (event) {
               }),
             }
           ).then(function (res) {
+            console.log(res)
             if(res.ok){
               deleteItemFromData("sync-posts",dt.id)
             }
