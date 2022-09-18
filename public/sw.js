@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v60";
-var CACHE_DYNAMIC_NAME = "dynamic-v60";
+var CACHE_STATIC_NAME = "static-v62";
+var CACHE_DYNAMIC_NAME = "dynamic-v62";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -174,28 +174,25 @@ self.addEventListener("sync", function (event) {
     event.waitUntil(
       readAllData("sync-posts").then(function (data) {
         for (var dt of data) {
-          fetch(
-            "http://localhost:8080/post",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              body: JSON.stringify({
-                id: dt.id,
-                title: dt.title,
-                location: dt.location,
-                image:
-                  "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
-              }),
-            }
-          )
+          fetch("http://localhost:8080/post", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              id: dt.id,
+              title: dt.title,
+              location: dt.location,
+              image:
+                "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
+            }),
+          })
             .then(function (res) {
               console.log(res);
               if (res.ok) {
                 res.json().then(function (resData) {
-                  console.log(resData)
+                  console.log(resData);
                   deleteItemFromData("sync-posts", resData.id);
                 });
               }
@@ -207,4 +204,20 @@ self.addEventListener("sync", function (event) {
       })
     );
   }
+});
+
+self.addEventListener("notificationclick", function (event) {
+  var notification = event.notification;
+  var action = event.action;
+  console.log(notification);
+  if (action == "confirm") {
+    console.log("Confirm Was Choosen");
+    notification.close();
+  } else {
+    console.log("Another action was choosen",action)
+  }
+});
+
+self.addEventListener('notificationclose', function(event) {
+  console.log('Notification was closed', event);
 });
