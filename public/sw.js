@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v62";
-var CACHE_DYNAMIC_NAME = "dynamic-v62";
+var CACHE_STATIC_NAME = "static-v65";
+var CACHE_DYNAMIC_NAME = "dynamic-v65";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -206,8 +206,6 @@ self.addEventListener("sync", function (event) {
   }
 });
 
-
-
 // ============ Service Worker Listners ============
 // self.addEventListener("notificationclick", function (event) {
 //   var notification = event.notification;
@@ -224,3 +222,17 @@ self.addEventListener("sync", function (event) {
 // self.addEventListener('notificationclose', function(event) {
 //   console.log('Notification was closed', event);
 // });
+
+self.addEventListener('push', function(event) {
+  console.log("Push notification received", event);
+  var data = { title: "New!", content: "Something New Happened" };
+  if (event.data) {
+    data = JSON.parse(event.data.text());
+  }
+  var option = {
+    content: data.content,
+    icon: "/src/images/icons/app-icon-96x96.png",
+    badge: "/src/images/icons/app-icon-96x96.png",
+  };
+  event.waitUntil(self.registration.showNotification(data.title, option));
+});
