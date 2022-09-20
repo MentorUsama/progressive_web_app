@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v66";
-var CACHE_DYNAMIC_NAME = "dynamic-v66";
+var CACHE_STATIC_NAME = "static-v67";
+var CACHE_DYNAMIC_NAME = "dynamic-v67";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -222,10 +222,10 @@ self.addEventListener("notificationclick", function (event) {
           return c.visibilityState == "visible";
         });
         if (client != undefined) {
-          client.navigate("http://127.0.0.1:8081");
+          client.navigate(notification.data.url);
           client.focus();
         } else {
-          clients.openWindow("http://127.0.0.1:8081");
+          clients.openWindow(notification.data.url);
         }
       })
     );
@@ -239,7 +239,7 @@ self.addEventListener("notificationclick", function (event) {
 
 self.addEventListener("push", function (event) {
   console.log("Push notification received", event);
-  var data = { title: "New!", content: "Something New Happened" };
+  var data = { title: "New!", content: "Something New Happened", openUrl: "/" };
   if (event.data) {
     data = JSON.parse(event.data.text());
   }
@@ -247,6 +247,9 @@ self.addEventListener("push", function (event) {
     content: data.content,
     icon: "/src/images/icons/app-icon-96x96.png",
     badge: "/src/images/icons/app-icon-96x96.png",
+    data: {
+      url: data.openUrl,
+    },
   };
   event.waitUntil(self.registration.showNotification(data.title, option));
 });

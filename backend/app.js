@@ -55,7 +55,7 @@ app.post("/post", (request, response, next) => {
         webpush
           .sendNotification(
             pushConfig,
-            JSON.stringify({ title: "New Post", content: "New Post Added" })
+            JSON.stringify({ title: "New Post", content: "New Post Added",openUrl:"/help" })
           )
           .catch((err) => {
             console.log(err);
