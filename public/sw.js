@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v65";
-var CACHE_DYNAMIC_NAME = "dynamic-v65";
+var CACHE_STATIC_NAME = "static-v66";
+var CACHE_DYNAMIC_NAME = "dynamic-v66";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -207,23 +207,37 @@ self.addEventListener("sync", function (event) {
 });
 
 // ============ Service Worker Listners ============
-// self.addEventListener("notificationclick", function (event) {
-//   var notification = event.notification;
-//   var action = event.action;
-//   console.log(notification);
-//   if (action == "confirm") {
-//     console.log("Confirm Was Choosen");
-//     notification.close();
-//   } else {
-//     console.log("Another action was choosen",action)
-//   }
-// });
+self.addEventListener("notificationclick", function (event) {
+  var notification = event.notification;
+  var action = event.action;
+  console.log(notification);
+  if (action == "confirm") {
+    console.log("Confirm Was Choosen");
+    notification.close();
+  } else {
+    console.log("Another action was choosen", action);
+    event.waitUntil(
+      clients.matchAll().then(function (clis) {
+        var client = clis.find(function (c) {
+          return c.visibilityState == "visible";
+        });
+        if (client != undefined) {
+          client.navigate("http://127.0.0.1:8081");
+          client.focus();
+        } else {
+          clients.openWindow("http://127.0.0.1:8081");
+        }
+      })
+    );
+    notification.close();
+  }
+});
 
 // self.addEventListener('notificationclose', function(event) {
 //   console.log('Notification was closed', event);
 // });
 
-self.addEventListener('push', function(event) {
+self.addEventListener("push", function (event) {
   console.log("Push notification received", event);
   var data = { title: "New!", content: "Something New Happened" };
   if (event.data) {
