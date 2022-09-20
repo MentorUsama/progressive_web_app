@@ -21,38 +21,34 @@ window.addEventListener("beforeinstallprompt", (event) => {
 });
 
 // ============ Displaying Notification by javascript ============
-// function displayConfirmNotification() {
-//   var options = {
-//     body: "You successfully subscribed to our Notification services ",
-//     icon: "/src/images/icons/app-icon-96x96.png",
-//     image: "/src/images/sf-boat.jpg",
-//     dir: "ltr",
-//     lang: "en-US", // BCP 47,
-//     vibrate: [100, 50, 200],
-//     badge: "/src/images/icons/app-icon-96x96.png", // In android
-//     tag: "confirm-notification", // For same notification they will replace each other if their is multiple one
-//     renotify: true, // New notification of same tag will vibrate,
-//     actions: [
-//       {
-//         action: "confirm",
-//         title: "Ok",
-//         icon: "/src/images/icons/app-icon-96x96.png",
-//       },
-//       {
-//         action: "cancel",
-//         title: "Cancel",
-//         icon: "/src/images/icons/app-icon-96x96.png",
-//       },
-//     ],
-//   };
-//   if ("serviceWorker" in navigator) {
-//     navigator.serviceWorker.ready.then(function (swreg) {
-//       swreg.showNotification("Successfully subscribed (FROM SW!!)", options);
-//     });
-//   } else {
-//     new Notification("Successfully subscribed", options);
-//   }
-// }
+function displayConfirmNotification() {
+  var options = {
+    body: "You successfully subscribed to our Notification services ",
+    icon: "/src/images/icons/app-icon-96x96.png",
+    image: "/src/images/sf-boat.jpg",
+    dir: "ltr",
+    lang: "en-US", // BCP 47,
+    vibrate: [100, 50, 200],
+    badge: "/src/images/icons/app-icon-96x96.png", // In android
+    tag: "confirm-notification", // For same notification they will replace each other if their is multiple one
+    renotify: true, // New notification of same tag will vibrate,
+    actions: [
+      {
+        action: "confirm",
+        title: "Ok",
+        icon: "/src/images/icons/app-icon-96x96.png",
+      },
+      {
+        action: "cancel",
+        title: "Cancel",
+        icon: "/src/images/icons/app-icon-96x96.png",
+      },
+    ],
+  };
+  navigator.serviceWorker.ready.then(function (swreg) {
+    swreg.showNotification("Successfully subscribed (FROM SW!!)", options);
+  });
+}
 function configurePushSub() {
   if (!("serviceWorker" in navigator)) {
     return;
@@ -66,12 +62,36 @@ function configurePushSub() {
     .then(function (sub) {
       if (sub == null) {
         // Create a new subscription
-        reg.pushManager.subscribe({
-          userVisibleOnly:true
+        var vapidPublicKey =
+          "BBo-u3rf39PHr7FZM4P5Mm795QXaGsTnTL5DnCn9Drij5DBZctiMeMmniez9ldSQehR6hcK_zYOrtr1WSmELEZY";
+        var convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+        return reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidPublicKey,
         });
       } else {
         // We have a subscription
       }
+    })
+    .then(function (newSub) {
+      fetch(
+        "https://practise-c4216-default-rtdb.firebaseio.com/subscriptions.json",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(newSub),
+        }
+      )
+        .then(function (res) {
+          if(res.ok)
+            displayConfirmNotification();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     });
 }
 function askForNotificationPermission() {
@@ -81,7 +101,6 @@ function askForNotificationPermission() {
       console.log("Permission Is Not Granted");
     } else {
       configurePushSub();
-      // displayConfirmNotification();
     }
   });
 }
