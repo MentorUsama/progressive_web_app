@@ -24,51 +24,56 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/post", (request, response, next) => {
-  admin
-    .database()
-    .ref("posts")
-    .push({
+app.post("/post", async (request, response, next) => {
+  // =============== Storung Data into database ===============
+  try {
+    await admin.database().ref("posts").push({
       id: request.body.id,
       title: request.body.title,
       location: request.body.location,
-      image: request.body.image,
-    })
-    .then(function () {
-      webpush.setVapidDetails(
-        "mailto:usama.farhat.99@gmail.com",
-        "BBo-u3rf39PHr7FZM4P5Mm795QXaGsTnTL5DnCn9Drij5DBZctiMeMmniez9ldSQehR6hcK_zYOrtr1WSmELEZY",
-        process.env.PRIVATE_KEY
-      );
-      return admin.database().ref("subscriptions").once("value");
-    })
-    .then((subcriptions) => {
-      subcriptions.forEach(function (sub) {
-        var pushConfig = {
-          endpoint: sub.val().endpoint,
-          keys: {
-            auth: sub.val().keys.auth,
-            p256dh: sub.val().keys.p256dh,
-          },
-        };
-
-        webpush
-          .sendNotification(
-            pushConfig,
-            JSON.stringify({ title: "New Post", content: "New Post Added",openUrl:"/help" })
-          )
-          .catch((err) => {
-            console.log(err);
-          });
-      });
-      response
-        .status(201)
-        .json({ message: "Data stored", id: request.body.id });
-    })
-    .catch(function (err) {
-      console.log(err)
-      response.status(500).json({ error: err });
+      image: "",
     });
+  } catch (error) {
+    return response.status(500).json({ error: error });
+  }
+  // =============== Getting Subscriptions ===============
+  webpush.setVapidDetails(
+    "mailto:usama.farhat.99@gmail.com",
+    "BBo-u3rf39PHr7FZM4P5Mm795QXaGsTnTL5DnCn9Drij5DBZctiMeMmniez9ldSQehR6hcK_zYOrtr1WSmELEZY",
+    process.env.PRIVATE_KEY
+  );
+  try {
+    const subcriptions = await admin
+      .database()
+      .ref("subscriptions")
+      .once("value");
+  } catch (error) {
+    return response.status(500).json({ error: error });
+  }
+  // =============== Sending Notifications ===============
+  subcriptions.forEach(function (sub) {
+    var pushConfig = {
+      endpoint: sub.val().endpoint,
+      keys: {
+        auth: sub.val().keys.auth,
+        p256dh: sub.val().keys.p256dh,
+      },
+    };
+    webpush
+      .sendNotification(
+        pushConfig,
+        JSON.stringify({
+          title: "New Post",
+          content: "New Post Added",
+          openUrl: "/help",
+        })
+      )
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+  // =============== Sending Response ===============
+  response.status(201).json({ message: "Data stored", id: request.body.id });
 });
 
 const server = app.listen(8080);
