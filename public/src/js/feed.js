@@ -12,6 +12,7 @@ var canvasElement = document.querySelector("#canvas");
 var captureButton = document.querySelector("#capture-btn");
 var imagePicker = document.querySelector("#image-picker");
 var imagePickerArea = document.querySelector("#pick-image");
+var picture = null;
 
 function initializeMedia() {
   if (!("mediaDevices" in navigator)) {
@@ -63,6 +64,8 @@ captureButton.addEventListener("click", function (event) {
   videoPlayer.srcObject.getAudioTracks().forEach(function (audio) {
     audio.stop();
   });
+
+  picture = dataURItoBlob(canvasElement.toDataURL());
 });
 
 function openCreatePostModal() {
@@ -216,19 +219,15 @@ if ("indexedDB" in window) {
   });
 }
 function sendData() {
+  var postData = new FormData();
+  const id = new Date().toISOString();
+  postData.append("id", id);
+  postData.append("title", titleInput.value);
+  postData.append("location", locationInput.value);
+  postData.append("file", picture, id + ".png");
   fetch("http://localhost:8080/post", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      id: new Date().toISOString(),
-      title: titleInput.value,
-      location: locationInput.value,
-      image:
-        "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
-    }),
+    body: postData,
   }).then(function (res) {
     console.log("sendded data", res);
     updateUI();
@@ -249,6 +248,7 @@ form.addEventListener("submit", function (event) {
         title: titleInput.value,
         location: locationInput.value,
         id: new Date().toISOString(),
+        picture: picture,
       };
       writeDate("sync-posts", post)
         .then(() => {

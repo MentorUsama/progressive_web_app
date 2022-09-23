@@ -16,6 +16,8 @@
   max-width: 100%;
   display: none;
   margin: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #create-post #pick-image {

@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v78";
-var CACHE_DYNAMIC_NAME = "dynamic-v78";
+var CACHE_STATIC_NAME = "static-v82";
+var CACHE_DYNAMIC_NAME = "dynamic-v82";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -174,19 +174,18 @@ self.addEventListener("sync", function (event) {
     event.waitUntil(
       readAllData("sync-posts").then(function (data) {
         for (var dt of data) {
+          var postData = new FormData();
+          postData.append("id", dt.id);
+          postData.append("title", dt.title);
+          postData.append("location", dt.location);
+          postData.append("file", dt.picture, dt.id + ".png");
           fetch("http://localhost:8080/post", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
-            body: JSON.stringify({
-              id: dt.id,
-              title: dt.title,
-              location: dt.location,
-              image:
-                "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
-            }),
+            body: postData,
           })
             .then(function (res) {
               console.log(res);
