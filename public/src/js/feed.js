@@ -7,9 +7,35 @@ var sharedMomentsArea = document.querySelector("#shared-moments");
 var form = document.querySelector("form");
 var titleInput = document.querySelector("#title");
 var locationInput = document.querySelector("#location");
+var videoPlayer = document.querySelector("#player");
+var canvasElement = document.querySelector("#canvas");
+var captureButton = document.querySelector("#capture-btn");
+var imagePicker = document.querySelector("#image-picker");
+var imagePickerArea = document.querySelector("#pick-image");
+
+function initializeMedia() {
+  if (!('mediaDevices' in navigator)) {
+    navigator.mediaDevices = {};
+  }
+
+  if (!('getUserMedia' in navigator.mediaDevices)) {
+    navigator.mediaDevices.getUserMedia = function(constraints) {
+      var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+      if (!getUserMedia) {
+        return Promise.reject(new Error('getUserMedia is not implemented!'));
+      }
+
+      return new Promise(function(resolve, reject) {
+        getUserMedia.call(navigator, constraints, resolve, reject);
+      });
+    }
+  }
+}
 
 function openCreatePostModal() {
   createPostArea.style.display = "block";
+  initializeMedia();
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -146,23 +172,24 @@ if ("indexedDB" in window) {
     }
   });
 }
-function sendData(){
-  fetch('http://localhost:8080/post',{
-    method:"POST",
-    headers:{
-      'Content-Type':'application/json',
-      'Accept':'application/json'
+function sendData() {
+  fetch("http://localhost:8080/post", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    body:JSON.stringify({
-      id:new Date().toISOString(),
-      title:titleInput.value,
-      location:locationInput.value,
-      image:'https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600'
-    })
-  }).then(function(res){
-    console.log('sendded data',res)
-    updateUI()
-  })
+    body: JSON.stringify({
+      id: new Date().toISOString(),
+      title: titleInput.value,
+      location: locationInput.value,
+      image:
+        "https://images.pexels.com/photos/15286/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=600",
+    }),
+  }).then(function (res) {
+    console.log("sendded data", res);
+    updateUI();
+  });
 }
 form.addEventListener("submit", function (event) {
   event.preventDefault();
@@ -185,16 +212,16 @@ form.addEventListener("submit", function (event) {
           return sw.sync.register("sync-new-posts");
         })
         .then(function () {
-          console.log("Post Saved For Syncing")
+          console.log("Post Saved For Syncing");
           // var snackbarContainer = document.querySelector("#confirmation-toast");
           // var data = { message: "Your Post Was Saved For Synchrinizaion" };
           // snackbarContainer.MaterialSnackbar.showSnackBar(data);
         })
         .catch(function (error) {
-          console.log("Error background sync ===>",error);
+          console.log("Error background sync ===>", error);
         });
     });
   } else {
-    sendData()
+    sendData();
   }
 });
