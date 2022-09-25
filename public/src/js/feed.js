@@ -248,7 +248,7 @@ form.addEventListener("submit", function (event) {
         title: titleInput.value,
         location: locationInput.value,
         id: new Date().toISOString(),
-        picture: picture,
+        file: picture,
       };
       writeDate("sync-posts", post)
         .then(() => {

@@ -4,6 +4,8 @@ const webpush = require("web-push");
 var admin = require("firebase-admin");
 const path = require("path");
 const multer = require("multer");
+var UUID = require("uuid-v4");
+var fs = require('fs');
 
 // ====== Environment Variable ======
 require("dotenv").config();
@@ -35,6 +37,7 @@ var serviceAccount = require(path.join(__dirname, "service_account.json"));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://practise-c4216-default-rtdb.firebaseio.com",
+  storageBucket: "gs://practise-c4216.appspot.com",
 });
 var ad = admin.database();
 
@@ -63,15 +66,41 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ====== Post Routes ======
 app.post("/post", async (request, response, next) => {
-  console.log(request.body);
+  // =============== Uploading Image on firebase ===============
+  var uuid = UUID();
+  const bucket = admin.storage().bucket();
+  var uploadedFile;
+  try {
+    uploadedFile = await bucket.upload(`${request.file.path}`, {
+      uploadType: "media",
+      metadata: {
+        metadata: {
+          contentType: request.file.mimetype,
+          firebaseStorageDownloadTokens: uuid,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error: error });
+  }
   // =============== Storung Data into database ===============
   try {
-    await admin.database().ref("posts").push({
-      id: request.body.id,
-      title: request.body.title,
-      location: request.body.location,
-      image: "",
-    });
+    await admin
+      .database()
+      .ref("posts")
+      .push({
+        id: request.body.id,
+        title: request.body.title,
+        location: request.body.location,
+        image:
+          "https://firebasestorage.googleapis.com/v0/b/" +
+          bucket.name +
+          "/o/" +
+          encodeURIComponent(uploadedFile[0].name) +
+          "?alt=media&token=" +
+          uuid,
+      });
   } catch (error) {
     return response.status(500).json({ error: error });
   }
@@ -109,6 +138,9 @@ app.post("/post", async (request, response, next) => {
         console.log(err);
       });
   });
+  // =============== Deleting temp images ==========
+  fs.unlinkSync(request.file.path);
+
   // =============== Sending Response ===============
   response.status(201).json({ message: "Data stored", id: request.body.id });
 });

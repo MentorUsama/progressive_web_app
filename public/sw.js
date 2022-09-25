@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v82";
-var CACHE_DYNAMIC_NAME = "dynamic-v82";
+var CACHE_STATIC_NAME = "static-v85";
+var CACHE_DYNAMIC_NAME = "dynamic-v85";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -178,13 +178,9 @@ self.addEventListener("sync", function (event) {
           postData.append("id", dt.id);
           postData.append("title", dt.title);
           postData.append("location", dt.location);
-          postData.append("file", dt.picture, dt.id + ".png");
+          postData.append("file", dt.file, dt.id + ".png");
           fetch("http://localhost:8080/post", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
             body: postData,
           })
             .then(function (res) {
