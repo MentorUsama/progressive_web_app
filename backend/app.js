@@ -100,6 +100,8 @@ app.post("/post", async (request, response, next) => {
           encodeURIComponent(uploadedFile[0].name) +
           "?alt=media&token=" +
           uuid,
+          rawLocationLat:request.body.rawLocationLat,
+          rawLocationLng:request.body.rawLocationLng
       });
   } catch (error) {
     return response.status(500).json({ error: error });

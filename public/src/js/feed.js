@@ -13,6 +13,9 @@ var captureButton = document.querySelector("#capture-btn");
 var imagePicker = document.querySelector("#image-picker");
 var imagePickerArea = document.querySelector("#pick-image");
 var picture = null;
+var locationBtn = document.querySelector("#location-btn");
+var locationLoader = document.querySelector("#location-loader");
+var fetchedLocation = { lat: null, lng: null };
 
 function initializeMedia() {
   if (!("mediaDevices" in navigator)) {
@@ -41,10 +44,43 @@ function initializeMedia() {
       videoPlayer.style.display = "block";
     })
     .catch(function (err) {
-      imagePickerArea.style.display = 'block';
+      imagePickerArea.style.display = "block";
     });
 }
+function initilizeLocation() {
+  if (!"geolocation" in navigator) {
+    locationBtn.style.display = "none";
+    return;
+  }
+}
+locationBtn.addEventListener("click", (event) => {
+  if (!"geolocation" in navigator) {
+    locationBtn.style.display = "none";
+    return;
+  }
 
+  locationBtn.style.display = "none";
+  locationLoader.style.display = "block";
+  navigator.geolocation.getCurrentPosition(
+    function (position) {
+      locationBtn.style.display = "inline";
+      locationLoader.style.display = "none";
+      fetchedLocation = { lat: position.coords.latitude, lng: 0 };
+      locationInput.value = "In Pakistan (hard coded)";
+      document.querySelector("#manual-location").classList.add("is-focused");
+    },
+    function (error) {
+      locationBtn.style.display = "inline";
+      locationLoader.style.display = "none";
+      fetchedLocation = { lat: null, lng: null };
+      alert("Couldn't fetch location please enter manually!!");
+      console.log(error);
+    },
+    {
+      timeout: 7000,
+    }
+  );
+});
 captureButton.addEventListener("click", function (event) {
   canvasElement.style.display = "block";
   videoPlayer.style.display = "none";
@@ -68,12 +104,13 @@ captureButton.addEventListener("click", function (event) {
   picture = dataURItoBlob(canvasElement.toDataURL());
 });
 
-imagePicker.addEventListener('change',function(event){
-  picture=event.target.files[0]
-})
+imagePicker.addEventListener("change", function (event) {
+  picture = event.target.files[0];
+});
 function openCreatePostModal() {
   createPostArea.style.display = "block";
   initializeMedia();
+  initilizeLocation();
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -105,6 +142,9 @@ function closeCreatePostModal() {
   imagePickerArea.style.display = "none";
   videoPlayer.style.display = "none";
   canvasElement.style.display = "none";
+  locationBtn.style.display = "inline";
+  locationLoader.style.display = "none";
+
   if (videoPlayer.srcObject) {
     videoPlayer.srcObject.getVideoTracks().forEach(function (track) {
       track.stop();
@@ -228,6 +268,9 @@ function sendData() {
   postData.append("title", titleInput.value);
   postData.append("location", locationInput.value);
   postData.append("file", picture, id + ".png");
+  postData.append("rawLocationLat", fetchedLocation.lat);
+  postData.append("rawLocationLng", fetchedLocation.lng);
+
   fetch("http://localhost:8080/post", {
     method: "POST",
     body: postData,
@@ -252,6 +295,7 @@ form.addEventListener("submit", function (event) {
         location: locationInput.value,
         id: new Date().toISOString(),
         file: picture,
+        rawLocation: fetchedLocation,
       };
       writeDate("sync-posts", post)
         .then(() => {

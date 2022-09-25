@@ -11,7 +11,7 @@
   display: none;
 }
 
-#create-post video, #create-post canvas {
+#create-post video, #create-post canvas,#location-loader {
   width: 512px;
   max-width: 100%;
   display: none;

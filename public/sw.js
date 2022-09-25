@@ -178,6 +178,8 @@ self.addEventListener("sync", function (event) {
           postData.append("id", dt.id);
           postData.append("title", dt.title);
           postData.append("location", dt.location);
+          postData.append("rawLocationLat", dt.rawLocation.lat);
+          postData.append("rawLocationLng", dt.rawLocation.lng);
           const myFile = new File([dt.file], 'image.png', {
             type: dt.file.type,
           });
