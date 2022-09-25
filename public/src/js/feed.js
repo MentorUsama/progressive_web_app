@@ -35,13 +35,13 @@ function initializeMedia() {
   }
 
   navigator.mediaDevices
-    .getUserMedia({ video: true, audio: true })
+    .getUserMedia({ video: true })
     .then(function (stream) {
       videoPlayer.srcObject = stream;
       videoPlayer.style.display = "block";
     })
     .catch(function (err) {
-      imagePicker.style.display = "block";
+      imagePickerArea.style.display = 'block';
     });
 }
 
@@ -68,6 +68,9 @@ captureButton.addEventListener("click", function (event) {
   picture = dataURItoBlob(canvasElement.toDataURL());
 });
 
+imagePicker.addEventListener('change',function(event){
+  picture=event.target.files[0]
+})
 function openCreatePostModal() {
   createPostArea.style.display = "block";
   initializeMedia();
