@@ -1,7 +1,7 @@
 importScripts("./src/js/idb.js");
 importScripts("./src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v86";
-var CACHE_DYNAMIC_NAME = "dynamic-v86";
+var CACHE_STATIC_NAME = "static-v89";
+var CACHE_DYNAMIC_NAME = "dynamic-v89";
 const STATIC_FILES_ARRAY = [
   "/",
   "./offline.html",
@@ -175,11 +175,13 @@ self.addEventListener("sync", function (event) {
       readAllData("sync-posts").then(function (data) {
         for (var dt of data) {
           var postData = new FormData();
+          console.log("syncing")
           postData.append("id", dt.id);
           postData.append("title", dt.title);
           postData.append("location", dt.location);
           postData.append("rawLocationLat", dt.rawLocation.lat);
           postData.append("rawLocationLng", dt.rawLocation.lng);
+          console.log("syncing soon")
           const myFile = new File([dt.file], 'image.png', {
             type: dt.file.type,
           });

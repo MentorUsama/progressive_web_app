@@ -15,7 +15,7 @@ var imagePickerArea = document.querySelector("#pick-image");
 var picture = null;
 var locationBtn = document.querySelector("#location-btn");
 var locationLoader = document.querySelector("#location-loader");
-var fetchedLocation = { lat: null, lng: null };
+var fetchedLocation = { lat: 0, lng: 0 };
 
 function initializeMedia() {
   if (!("mediaDevices" in navigator)) {
@@ -72,7 +72,7 @@ locationBtn.addEventListener("click", (event) => {
     function (error) {
       locationBtn.style.display = "inline";
       locationLoader.style.display = "none";
-      fetchedLocation = { lat: null, lng: null };
+      fetchedLocation = { lat: 0, lng: 0 };
       alert("Couldn't fetch location please enter manually!!");
       console.log(error);
     },
@@ -108,7 +108,9 @@ imagePicker.addEventListener("change", function (event) {
   picture = event.target.files[0];
 });
 function openCreatePostModal() {
-  createPostArea.style.display = "block";
+  setTimeout(function(){
+    createPostArea.style.transform = "translateY(0vh)";
+  },10)
   initializeMedia();
   initilizeLocation();
   if (deferredPrompt) {
@@ -138,12 +140,12 @@ function openCreatePostModal() {
 }
 
 function closeCreatePostModal() {
-  createPostArea.style.display = "none";
   imagePickerArea.style.display = "none";
   videoPlayer.style.display = "none";
   canvasElement.style.display = "none";
   locationBtn.style.display = "inline";
   locationLoader.style.display = "none";
+  captureButton.style.display='inline'
 
   if (videoPlayer.srcObject) {
     videoPlayer.srcObject.getVideoTracks().forEach(function (track) {
@@ -153,6 +155,10 @@ function closeCreatePostModal() {
       audio.stop();
     });
   }
+
+  setTimeout(() => {
+    createPostArea.style.transform = "translateY(100vh)";
+  }, 10);
 }
 
 shareImageButton.addEventListener("click", openCreatePostModal);
