@@ -3,6 +3,93 @@ importScripts("./src/js/utility.js");
 
 importScripts("workbox-sw.prod.v2.1.3.js");
 const workboxSW = new self.WorkboxSW();
+// ============= Listening To post sync event =============
+self.addEventListener("sync", function (event) {
+  console.log("[Service Worker] Background syncing", event);
+  if (event.tag === "sync-new-posts") {
+    console.log("Syncing New Posts", event);
+    event.waitUntil(
+      readAllData("sync-posts").then(function (data) {
+        for (var dt of data) {
+          var postData = new FormData();
+          console.log("syncing");
+          postData.append("id", dt.id);
+          postData.append("title", dt.title);
+          postData.append("location", dt.location);
+          postData.append("rawLocationLat", dt.rawLocation.lat);
+          postData.append("rawLocationLng", dt.rawLocation.lng);
+          console.log("syncing soon");
+          const myFile = new File([dt.file], "image.png", {
+            type: dt.file.type,
+          });
+          console.log(myFile);
+          postData.append("file", myFile);
+          fetch("http://localhost:8080/post", {
+            method: "POST",
+            body: postData,
+          })
+            .then(function (res) {
+              console.log(res);
+              if (res.ok) {
+                res.json().then(function (resData) {
+                  console.log(resData);
+                  deleteItemFromData("sync-posts", resData.id);
+                });
+              }
+            })
+            .catch(function (err) {
+              console.log("Failed To Delete Data");
+            });
+        }
+      })
+    );
+  }
+});
+
+// ============ Notification Click Listeners ============
+self.addEventListener("notificationclick", function (event) {
+  var notification = event.notification;
+  var action = event.action;
+  console.log(notification);
+  if (action == "confirm") {
+    console.log("Confirm Was Choosen");
+    notification.close();
+  } else {
+    console.log("Another action was choosen", action);
+    event.waitUntil(
+      clients.matchAll().then(function (clis) {
+        var client = clis.find(function (c) {
+          return c.visibilityState == "visible";
+        });
+        if (client != undefined) {
+          client.navigate(notification.data.url);
+          client.focus();
+        } else {
+          clients.openWindow(notification.data.url);
+        }
+      })
+    );
+    notification.close();
+  }
+});
+// ============ Push Notification Listners ============
+self.addEventListener("push", function (event) {
+  console.log("Push notification received", event);
+  var data = { title: "New!", content: "Something New Happened", openUrl: "/" };
+  if (event.data) {
+    data = JSON.parse(event.data.text());
+  }
+  var option = {
+    content: data.content,
+    icon: "/src/images/icons/app-icon-96x96.png",
+    badge: "/src/images/icons/app-icon-96x96.png",
+    data: {
+      url: data.openUrl,
+    },
+  };
+  event.waitUntil(self.registration.showNotification(data.title, option));
+});
+
 workboxSW.router.registerRoute(
   /.*(?:googleapis|gstatic)\.com.*$/,
   workboxSW.strategies.staleWhileRevalidate({
@@ -61,9 +148,9 @@ workboxSW.router.registerRoute(
           })
           .catch((error) => {
             // If nothing found and the request contain html file then offline file is send
-            return caches.match('/offline.html').then((response) => {
-                return response
-            }); 
+            return caches.match("/offline.html").then((response) => {
+              return response;
+            });
           });
     });
   }
@@ -87,7 +174,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "b1fb8d74e1794dac055040ae074f98f3"
+    "revision": "36c248e26316b780665586215af9c45d"
   },
   {
     "url": "src/css/app.css",
@@ -131,7 +218,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "50ee8ca1d4bb1771cdc5ca511a489d5d"
+    "revision": "dd8ef5f79706ff6049c6c75b3983ebfb"
   },
   {
     "url": "sw.js",
