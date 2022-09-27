@@ -1,13 +1,16 @@
+importScripts("./src/js/idb.js");
+importScripts("./src/js/utility.js");
+
 importScripts("workbox-sw.prod.v2.1.3.js");
 const workboxSW = new self.WorkboxSW();
 workboxSW.router.registerRoute(
   /.*(?:googleapis|gstatic)\.com.*$/,
   workboxSW.strategies.staleWhileRevalidate({
     cacheName: "google-font",
-    cacheExpiration:{
-        maxEntries:3,
-        maxAgeSeconds:60*60*24*30
-    }
+    cacheExpiration: {
+      maxEntries: 3,
+      maxAgeSeconds: 60 * 60 * 24 * 30,
+    },
   })
 );
 workboxSW.router.registerRoute(
@@ -21,5 +24,23 @@ workboxSW.router.registerRoute(
   workboxSW.strategies.staleWhileRevalidate({
     cacheName: "post-images",
   })
+);
+workboxSW.router.registerRoute(
+  "https://practise-c4216-default-rtdb.firebaseio.com/posts.json",
+  function (args) {
+    return fetch(args.event.request).then((res) => {
+      var clonedRes = res.clone();
+      clearAllData("posts")
+        .then(function () {
+          return clonedRes.json();
+        })
+        .then(function (data) {
+          for (var key in data) {
+            writeDate("posts", data[key]);
+          }
+        });
+      return res;
+    });
+  }
 );
 workboxSW.precache([]);

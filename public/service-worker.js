@@ -1,13 +1,16 @@
+importScripts("./src/js/idb.js");
+importScripts("./src/js/utility.js");
+
 importScripts("workbox-sw.prod.v2.1.3.js");
 const workboxSW = new self.WorkboxSW();
 workboxSW.router.registerRoute(
   /.*(?:googleapis|gstatic)\.com.*$/,
   workboxSW.strategies.staleWhileRevalidate({
     cacheName: "google-font",
-    cacheExpiration:{
-        maxEntries:3,
-        maxAgeSeconds:60*60*24*30
-    }
+    cacheExpiration: {
+      maxEntries: 3,
+      maxAgeSeconds: 60 * 60 * 24 * 30,
+    },
   })
 );
 workboxSW.router.registerRoute(
@@ -21,6 +24,24 @@ workboxSW.router.registerRoute(
   workboxSW.strategies.staleWhileRevalidate({
     cacheName: "post-images",
   })
+);
+workboxSW.router.registerRoute(
+  "https://practise-c4216-default-rtdb.firebaseio.com/posts.json",
+  function (args) {
+    return fetch(args.event.request).then((res) => {
+      var clonedRes = res.clone();
+      clearAllData("posts")
+        .then(function () {
+          return clonedRes.json();
+        })
+        .then(function (data) {
+          for (var key in data) {
+            writeDate("posts", data[key]);
+          }
+        });
+      return res;
+    });
+  }
 );
 workboxSW.precache([
   {
@@ -41,7 +62,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "e9ea659c300710d3aaae6497d91f0fb2"
+    "revision": "163015518a533a5f3b3e18f23c38b11c"
   },
   {
     "url": "src/css/app.css",
@@ -85,7 +106,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "96cdbab68e0e8a38c42cf7afd16e88af"
+    "revision": "c08a3b9a197fd6ce81859a22817ffa51"
   },
   {
     "url": "sw.js",
