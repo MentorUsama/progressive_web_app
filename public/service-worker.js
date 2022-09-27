@@ -1,23 +1,12 @@
-importScripts('workbox-sw.prod.v2.1.3.js');
-
-/**
- * DO NOT EDIT THE FILE MANIFEST ENTRY
- *
- * The method precache() does the following:
- * 1. Cache URLs in the manifest to a local cache.
- * 2. When a network request is made for any of these URLs the response
- *    will ALWAYS comes from the cache, NEVER the network.
- * 3. When the service worker changes ONLY assets with a revision change are
- *    updated, old cache entries are left as is.
- *
- * By changing the file manifest manually, your users may end up not receiving
- * new versions of files because the revision hasn't changed.
- *
- * Please use workbox-build or some other tool / approach to generate the file
- * manifest which accounts for changes to local files and update the revision
- * accordingly.
- */
-const fileManifest = [
+importScripts('workbox-sw.prod.v2.1.3.js')
+const workboxSW = new self.WorkboxSW();
+workboxSW.router.registerRoute(
+    /.*(?:googleapis|gstatic)\.com.*$/,
+    workboxSW.strategies.staleWhileRevalidate({
+      cacheName:'google-font'
+    })
+  );
+workboxSW.precache([
   {
     "url": "favicon.ico",
     "revision": "2cab47d9e04d664d93c8d91aec59e812"
@@ -33,6 +22,10 @@ const fileManifest = [
   {
     "url": "offline.html",
     "revision": "f17d802579bfd82b575131665881e829"
+  },
+  {
+    "url": "service-worker.js",
+    "revision": "88cbe14a859489b7aec5f7fc2a1bf619"
   },
   {
     "url": "src/css/app.css",
@@ -75,8 +68,16 @@ const fileManifest = [
     "revision": "2714964b1bcde7ce3e249c8ccbc12c9b"
   },
   {
+    "url": "sw-base.js",
+    "revision": "30ebf17bc532b855c7794491cd9883c9"
+  },
+  {
     "url": "sw.js",
     "revision": "022111720286ed9fedbdae35b48c8f9d"
+  },
+  {
+    "url": "workbox-sw.prod.v2.1.3.js",
+    "revision": "a9890beda9e5f17e4c68f42324217941"
   },
   {
     "url": "src/images/main-image-lg.jpg",
@@ -94,7 +95,4 @@ const fileManifest = [
     "url": "src/images/sf-boat.jpg",
     "revision": "0f282d64b0fb306daf12050e812d6a19"
   }
-];
-
-const workboxSW = new self.WorkboxSW();
-workboxSW.precache(fileManifest);
+]);
