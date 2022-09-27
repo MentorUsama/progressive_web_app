@@ -43,6 +43,31 @@ workboxSW.router.registerRoute(
     });
   }
 );
+workboxSW.router.registerRoute(
+  function (routeData) {
+    return routeData.event.request.headers.get("accept").includes("text/html");
+  },
+  function (args) {
+    return caches.match(args.event.request).then((response) => {
+      if (response) return response; // If found in cache
+      // if not found in cache return server request and also add in cache
+      else
+        return fetch(args.event.request)
+          .then((res) => {
+            return caches.open("dynamic").then((cache) => {
+              cache.put(args.event.request.url, res.clone());
+              return res;
+            });
+          })
+          .catch((error) => {
+            // If nothing found and the request contain html file then offline file is send
+            return caches.match('/offline.html').then((response) => {
+                return response
+            }); 
+          });
+    });
+  }
+);
 workboxSW.precache([
   {
     "url": "favicon.ico",
@@ -62,7 +87,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "163015518a533a5f3b3e18f23c38b11c"
+    "revision": "b1fb8d74e1794dac055040ae074f98f3"
   },
   {
     "url": "src/css/app.css",
@@ -106,7 +131,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "c08a3b9a197fd6ce81859a22817ffa51"
+    "revision": "50ee8ca1d4bb1771cdc5ca511a489d5d"
   },
   {
     "url": "sw.js",

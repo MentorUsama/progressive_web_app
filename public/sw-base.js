@@ -43,4 +43,29 @@ workboxSW.router.registerRoute(
     });
   }
 );
+workboxSW.router.registerRoute(
+  function (routeData) {
+    return routeData.event.request.headers.get("accept").includes("text/html");
+  },
+  function (args) {
+    return caches.match(args.event.request).then((response) => {
+      if (response) return response; // If found in cache
+      // if not found in cache return server request and also add in cache
+      else
+        return fetch(args.event.request)
+          .then((res) => {
+            return caches.open("dynamic").then((cache) => {
+              cache.put(args.event.request.url, res.clone());
+              return res;
+            });
+          })
+          .catch((error) => {
+            // If nothing found and the request contain html file then offline file is send
+            return caches.match('/offline.html').then((response) => {
+                return response
+            }); 
+          });
+    });
+  }
+);
 workboxSW.precache([]);
