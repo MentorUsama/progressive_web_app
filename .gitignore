@@ -5,6 +5,4 @@ backend/service_account.json
 backend/.env
 public/src/js/app.min.js
 public/src/js/*.min.js
-firebase.json
-.firebaserc
 .firebase
