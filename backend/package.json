@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "deploy":"git subtree push --prefix path/to/app-subdir heroku master"
   },
   "repository": {
     "type": "git",

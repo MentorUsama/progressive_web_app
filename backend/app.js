@@ -5,7 +5,7 @@ var admin = require("firebase-admin");
 const path = require("path");
 const multer = require("multer");
 var UUID = require("uuid-v4");
-var fs = require('fs');
+var fs = require("fs");
 
 // ====== Environment Variable ======
 require("dotenv").config();
@@ -33,9 +33,20 @@ const fileFilter = (req, file, cb) => {
 };
 
 // ===== Initilizing Firebase =====
-var serviceAccount = require(path.join(__dirname, "service_account.json"));
+// var serviceAccount = require(path.join(__dirname, "service_account.json"));
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    type: process.env.type,
+    project_id: process.env.project_id,
+    private_key_id: process.env.private_key_id,
+    private_key: process.env.service_private_key,
+    client_email: process.env.client_email,
+    client_id: process.env.client_id,
+    auth_uri: process.env.auth_uri,
+    token_uri: process.env.token_uri,
+    auth_provider_x509_cert_url: process.env.auth_provider_x509_cert_url,
+    client_x509_cert_url: process.env.client_x509_cert_url,
+  }),
   databaseURL: "https://practise-c4216-default-rtdb.firebaseio.com",
   storageBucket: "gs://practise-c4216.appspot.com",
 });
@@ -64,7 +75,10 @@ app.use(
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// ====== Post Routes ======
+// ====== Routes ======
+app.use("/", (req, res, next) => {
+  return res.status(200).json({ status: "OK" });
+});
 app.post("/post", async (request, response, next) => {
   // =============== Uploading Image on firebase ===============
   var uuid = UUID();
@@ -100,8 +114,8 @@ app.post("/post", async (request, response, next) => {
           encodeURIComponent(uploadedFile[0].name) +
           "?alt=media&token=" +
           uuid,
-          rawLocationLat:request.body.rawLocationLat,
-          rawLocationLng:request.body.rawLocationLng
+        rawLocationLat: request.body.rawLocationLat,
+        rawLocationLng: request.body.rawLocationLng,
       });
   } catch (error) {
     return response.status(500).json({ error: error });
