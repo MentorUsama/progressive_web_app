@@ -161,4 +161,4 @@ app.post("/post", async (request, response, next) => {
   response.status(201).json({ message: "Data stored", id: request.body.id });
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 8080);
