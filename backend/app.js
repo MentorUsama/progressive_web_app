@@ -76,9 +76,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // ====== Routes ======
-app.use("/", (req, res, next) => {
-  return res.status(200).json({ status: "OK" });
-});
 app.post("/post", async (request, response, next) => {
   // =============== Uploading Image on firebase ===============
   var uuid = UUID();
@@ -159,6 +156,9 @@ app.post("/post", async (request, response, next) => {
 
   // =============== Sending Response ===============
   response.status(201).json({ message: "Data stored", id: request.body.id });
+});
+app.use("/", (req, res, next) => {
+  return res.status(200).json({ status: "OK" });
 });
 
 app.listen(process.env.PORT || 8080);
