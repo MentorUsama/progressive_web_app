@@ -7,7 +7,8 @@
     "start": "http-server -c-1 -p 3000",
     "generate-sw": "workbox inject:manifest",
     "minify": "uglifyjs public/src/js/app.js -o public/src/js/app.min.js --compress  --mangle && uglifyjs public/src/js/feed.js -o public/src/js/feed.min.js --compress  --mangle && uglifyjs public/src/js/fetch.js -o public/src/js/fetch.min.js --compress  --mangle && uglifyjs public/src/js/idb.js -o public/src/js/idb.min.js --compress  --mangle && uglifyjs public/src/js/promise.js -o public/src/js/promise.min.js --compress  --mangle && uglifyjs public/src/js/utility.js -o public/src/js/utility.min.js --compress  --mangle",
-    "build":"npm run minify && npm run generate-sw"
+    "build":"npm run minify && npm run generate-sw",
+    "deploy": "git subtree push --prefix backend heroku main"
   },
   "keywords": [
     "pwa",
